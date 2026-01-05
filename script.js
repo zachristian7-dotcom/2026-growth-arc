@@ -1,7 +1,7 @@
 /* ---------- CONFIG ---------- */
 const exercises=[
   "Push-ups","Sit-ups","Pull-ups","Squats","Calf Raises",
-  "Grip Strength (sec)","Plank (sec)","Butterfly Kicks"
+  "Grip Strength-Right(sec)","Grip Strength-Left (sec)","Plank (sec)","Butterfly Kicks"
 ];
 const dailyGoals={
   "Push-ups":100,
@@ -9,7 +9,8 @@ const dailyGoals={
   "Pull-ups":50,
   "Squats":50,
   "Calf Raises":50,
-  "Grip Strength (sec)":90,
+  "Grip Strength-Right (sec)":90,
+  "Grip Strength-Left (sec)":90,
   "Plank (sec)":60,
   "Butterfly Kicks":30
 };
