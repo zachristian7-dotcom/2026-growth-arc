@@ -16,6 +16,12 @@
   <p>Current Streak: <strong id="streak">0</strong> days</p>
   <p>Total Time Exercised Today: <strong id="totalTime">0</strong> sec</p>
 
+  <h2>XP</h2>
+  <div style="width:100%;background:#ccc;height:20px;border-radius:10px;overflow:hidden;">
+    <div id="xpBar" style="height:100%;width:0%;background:#4a90e2;"></div>
+  </div>
+  <p id="xpText">XP: 0 / 100</p>
+
   <h2>🏋️ Log Workout</h2>
   <select id="exercise"></select>
   <input type="number" id="value" placeholder="Reps / Seconds">
@@ -26,23 +32,7 @@
 
   <h2>🏆 Badges & Achievements</h2>
   <ul id="badgeList"></ul>
-
-  <h2>📊 Metrics</h2>
-  <input id="height" placeholder="Height (inches)">
-  <input id="weight" placeholder="Weight (lbs)">
-  <input id="arm" placeholder="Arm (inches)">
-  <input id="thigh" placeholder="Thigh (inches)">
-  <input id="calf" placeholder="Calf (inches)">
-  <button onclick="saveMetrics()">Save Metrics</button>
-  <p id="bmi"></p>
 </section>
-
-<section class="card">
-  <h2>📊 Growth Dashboard</h2>
-  <canvas id="growthDashboard" width="500" height="300"></canvas>
-</section>
-
-<div id="tooltip"></div>
 
 <script src="script.js"></script>
 </body>
