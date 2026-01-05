@@ -10,4 +10,7 @@ body.dark-mode{background:#121212;color:#e0e0e0;}
 body.dark-mode .card{background:#1e1e1e;box-shadow:0 2px 6px rgba(0,0,0,0.7);}
 body.dark-mode input,body.dark-mode select,body.dark-mode button{background:#2a2a2a;color:#e0e0e0;border:1px solid #444;}
 body.dark-mode canvas{background:#1e1e1e;}
+ul {list-style:none;padding:0;}
+#badgeList li {transition: transform 0.3s ease, color 0.3s ease;}
+#badgeList li.new-badge {color:#27ae60; transform: scale(1.2);}
 @media(max-width:400px){h1{font-size:1.5rem;} input,select,button{font-size:0.9rem;padding:8px;}}
