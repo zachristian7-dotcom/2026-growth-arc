@@ -73,13 +73,16 @@ function updateBadges(){
 
 /* ---------- METRICS ---------- */
 function saveMetrics(){
-  const h=height.value, w=weight.value;
-  const armVal=arm.value, thighVal=thigh.value, calfVal=calf.value;
-  if(!h||!w) return;
-  const monthKey=`metrics-${new Date().toISOString().slice(0,7)}`;
-  data.metrics[monthKey]={height:h, weight:w, arm:armVal, thigh:thighVal, calf:calfVal};
-  const bmiVal=(w/((h*0.0254)**2)).toFixed(1); // convert inches/lbs to BMI in metric
-  document.getElementById("bmi").textContent=`BMI: ${bmiVal}`;
+  const h = height.value, w = weight.value;
+  const armVal = arm.value, thighVal = thigh.value, calfVal = calf.value;
+  if(!h || !w) return;
+  const monthKey = `metrics-${new Date().toISOString().slice(0,7)}`;
+  data.metrics[monthKey] = {height: h, weight: w, arm: armVal, thigh: thighVal, calf: calfVal};
+  
+  // ✅ Correct BMI calculation for inches/lbs
+  const bmiVal = ((w * 703) / (h * h)).toFixed(1);
+  document.getElementById("bmi").textContent = `BMI: ${bmiVal}`;
+  
   saveData();
 }
 
@@ -107,13 +110,13 @@ function drawGrowthDashboard(){
     const colors={weight:"#4a90e2",arm:"#f39c12",thigh:"#27ae60",calf:"#e74c3c",bmi:"#8e44ad"};
     const maxVal=Math.max(...months.map(m=>{
       const vals=data.metrics[m];
-      return Math.max(vals.weight,vals.arm,vals.thigh,vals.calf,(vals.weight/((vals.height*0.0254)**2)).toFixed(1));
+      return Math.max(vals.weight,vals.arm,vals.thigh,vals.calf,((vals.weight*703)/(vals.height*vals.height)).toFixed(1));
     }));
     metrics.forEach(metric=>{
       ctx.strokeStyle=colors[metric];
       ctx.beginPath();
       months.forEach((m,i)=>{
-        let val=metric==="bmi"?data.metrics[m].weight/((data.metrics[m].height*0.0254)**2):data.metrics[m][metric];
+        let val=metric==="bmi"?((data.metrics[m].weight*703)/(data.metrics[m].height*data.metrics[m].height)):data.metrics[m][metric];
         const x=i*(canvas.width/months.length)+10;
         const y=canvas.height-(val/maxVal*100)-50;
         if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
