@@ -16,29 +16,21 @@
   <p>Level: <strong id="level">1</strong></p>
   <p>XP: <strong id="xp">0</strong></p>
   <p>🔥 Streak: <strong id="streak">0</strong> days</p>
+  <p>Total Time Exercised: <strong id="totalTime">0</strong> sec</p>
 
   <h2>📈 XP Progress</h2>
   <div id="xpGraphContainer"><div id="xpGraph"></div></div>
   <p id="xpGraphText">0 / 100 XP</p>
 
   <h2>🏋️ Log Workout</h2>
-  <select id="exercise">
-    <option>Push-ups</option>
-    <option>Sit-ups</option>
-    <option>Pull-ups</option>
-    <option>Squats</option>
-    <option>Calf Raises</option>
-    <option>Grip Strength (sec)</option>
-    <option>Plank (sec)</option>
-    <option>Butterfly Kicks</option>
-  </select>
+  <select id="exercise"></select>
   <input type="number" id="value" placeholder="Reps / Seconds">
   <button onclick="logWorkout()">Log</button>
 
   <h2>📅 Today’s Progress</h2>
   <ul id="progressList"></ul>
 
-  <h2>🏆 Badges</h2>
+  <h2>🏆 Badges & Achievements</h2>
   <ul id="badgeList"></ul>
 
   <h2>📊 Metrics</h2>
@@ -53,10 +45,10 @@
 
 <section class="card">
   <h2>📊 Growth Dashboard</h2>
-  <canvas id="growthDashboard" width="500" height="250"></canvas>
+  <canvas id="growthDashboard" width="500" height="300"></canvas>
 </section>
 
-<div id="tooltip" style="position:absolute;padding:5px;background:#333;color:#fff;border-radius:4px;pointer-events:none;display:none;font-size:12px;"></div>
+<div id="tooltip"></div>
 
 <script src="script.js"></script>
 </body>
