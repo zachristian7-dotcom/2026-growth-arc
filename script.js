@@ -80,36 +80,43 @@ function saveMetrics(){
 }
 
 /* ---------- GROWTH DASHBOARD ---------- */
+const tooltip=document.getElementById("tooltip");
+
 function drawGrowthDashboard(){
   const canvas=document.getElementById("growthDashboard");
   const ctx=canvas.getContext("2d");
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
-  // XP Progress Bar
+  const mouse={x:0,y:0};
+  canvas.onmousemove=e=>{
+    const rect=canvas.getBoundingClientRect();
+    mouse.x=e.clientX-rect.left;
+    mouse.y=e.clientY-rect.top;
+    updateTooltip(canvas,ctx,mouse);
+  };
+  canvas.onmouseleave=()=>tooltip.style.display="none";
+
+  // XP Bar
   const lvl=levelFromXP(data.xp);
   const currentLevelXP=lvl*lvl*50;
   const nextLevelXP=(lvl+1)*(lvl+1)*50;
   const xpPercent=Math.min(((data.xp-currentLevelXP)/(nextLevelXP-currentLevelXP))*100,100);
   ctx.fillStyle="#4a90e2";
-  ctx.fillRect(0,canvas.height*0.05,canvas.width*xpPercent/100,20);
+  ctx.fillRect(0,10,canvas.width*xpPercent/100,20);
   ctx.fillStyle="#000";
-  ctx.fillText(`XP Progress: ${data.xp}`,5,15);
+  ctx.fillText(`XP Progress: ${data.xp}`,5,25);
 
-  // Streak Graph
+  // Streak Bars
   const streakDates=Object.keys(data.progress).sort();
-  if(streakDates.length>0){
-    const maxStreak=Math.max(...streakDates.map(d=>data.streak.count));
-    const barWidth=canvas.width/streakDates.length;
-    streakDates.forEach((d,i)=>{
-      const h=(data.streak.count/maxStreak)*50;
-      ctx.fillStyle="#f39c12";
-      ctx.fillRect(i*barWidth,canvas.height*0.1+50,barWidth*0.8,h);
-    });
-    ctx.fillStyle="#000";
-    ctx.fillText("🔥 Streak",5,70);
-  }
+  const barBase=50;
+  streakDates.forEach((d,i)=>{
+    const barWidth=canvas.width/streakDates.length*0.8;
+    const h=Math.min(data.streak.count*5,100);
+    ctx.fillStyle="#f39c12";
+    ctx.fillRect(i*(canvas.width/streakDates.length),barBase,h,barWidth);
+  });
 
-  // Monthly Metrics
+  // Metrics Lines
   const months=Object.keys(data.metrics).sort();
   if(months.length>0){
     const metrics=["weight","arm","thigh","calf","bmi"];
@@ -131,16 +138,6 @@ function drawGrowthDashboard(){
       });
       ctx.stroke();
     });
-
-    // Legend
-    let yPos=canvas.height-40;
-    for(let metric of metrics){
-      ctx.fillStyle=colors[metric];
-      ctx.fillRect(5,yPos-10,10,10);
-      ctx.fillStyle="#000";
-      ctx.fillText(metric,20,yPos);
-      yPos+=12;
-    }
   }
 }
 
