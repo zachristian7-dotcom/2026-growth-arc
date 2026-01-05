@@ -3,20 +3,27 @@ const exercises=[
   "Push-ups","Sit-ups","Pull-ups","Squats","Calf Raises",
   "Grip Strength (sec)","Plank (sec)","Butterfly Kicks"
 ];
-const baseGoals={};
-exercises.forEach(e=>baseGoals[e]=e.includes("sec")?90:(e==="Pull-ups"?10:(e==="Butterfly Kicks"?50:40)));
+const dailyGoals={
+  "Push-ups":100,
+  "Sit-ups":50,
+  "Pull-ups":50,
+  "Squats":50,
+  "Calf Raises":50,
+  "Grip Strength (sec)":90,
+  "Plank (sec)":60,
+  "Butterfly Kicks":30
+};
 
 const badgeList=[
   {id:"first","name":"First Step",check:d=>d.completed>=1},
   {id:"streak7","name":"Consistent",check:d=>d.streak>=7},
   {id:"streak30","name":"Locked In",check:d=>d.streak>=30},
-  {id:"plank120","name":"Iron Core",check:d=>d.plank>=120},
-  {id:"level5","name":"Level Up",check:d=>d.level>=5}
+  {id:"plank60","name":"Iron Core",check:d=>d.plank>=60}
 ];
 
 /* ---------- STORAGE ---------- */
 let data = JSON.parse(localStorage.getItem("growthArc")) || {
-  xp:0, streak:{count:0,last:null}, progress:{}, badges:[], metrics:{}, totalTime:0
+  streak:{count:0,last:null}, progress:{}, badges:[], metrics:{}, totalTime:0
 };
 function saveData(){localStorage.setItem("growthArc", JSON.stringify(data));}
 
@@ -26,8 +33,6 @@ exercises.forEach(e=>{let opt=document.createElement("option"); opt.value=e; opt
 
 /* ---------- HELPERS ---------- */
 const today=()=>new Date().toISOString().split("T")[0];
-function levelFromXP(xp){let lvl=1;while(xp>=lvl*lvl*50) lvl++; return lvl-1;}
-function scaledGoals(level){let mult=1;if(level>=10) mult=1.45; else if(level>=7) mult=1.3; else if(level>=4) mult=1.15; const g={}; for(let k in baseGoals) g[k]=Math.round(baseGoals[k]*mult); return g;}
 
 /* ---------- WORKOUT ---------- */
 function logWorkout(){
@@ -37,14 +42,6 @@ function logWorkout(){
   data.progress[today()]??={};
   data.progress[today()][ex]=(data.progress[today()][ex]||0)+val;
   data.totalTime+=ex.includes("sec")?val:0;
-
-  const oldXP=data.xp;
-  const lvl=levelFromXP(data.xp);
-  const goals=scaledGoals(lvl);
-  if(data.progress[today()][ex]>=goals[ex]) data.xp+=20;
-  if(Object.keys(goals).every(e=>data.progress[today()][e]>=goals[e])) data.xp+=50;
-  const newLevel=levelFromXP(data.xp);
-  if(newLevel>lvl) alert(`🎮 Level up! Level ${newLevel}`);
 
   updateStreak(true);
   saveData();
@@ -68,18 +65,20 @@ function updateStreak(loggedToday=false){
 function updateBadges(){
   const earned=data.badges||[];
   let plankTime=data.progress[today()]?.["Plank (sec)"]||0;
-  for(let b of badgeList){if(!earned.includes(b.id) && b.check({completed:1,streak:data.streak.count,plank:plankTime,level:levelFromXP(data.xp)})) earned.push(b.id);}
+  for(let b of badgeList){
+    if(!earned.includes(b.id) && b.check({completed:1,streak:data.streak.count,plank:plankTime})) earned.push(b.id);
+  }
   data.badges=earned;
 }
 
 /* ---------- METRICS ---------- */
 function saveMetrics(){
-  const h=height.value/100,w=weight.value;
-  const armVal=arm.value,thighVal=thigh.value,calfVal=calf.value;
+  const h=height.value, w=weight.value;
+  const armVal=arm.value, thighVal=thigh.value, calfVal=calf.value;
   if(!h||!w) return;
   const monthKey=`metrics-${new Date().toISOString().slice(0,7)}`;
-  data.metrics[monthKey]={height:h*100,weight:w,arm:armVal,thigh:thighVal,calf:calfVal};
-  const bmiVal=(w/(h*h)).toFixed(1);
+  data.metrics[monthKey]={height:h, weight:w, arm:armVal, thigh:thighVal, calf:calfVal};
+  const bmiVal=(w/((h*0.0254)**2)).toFixed(1); // convert inches/lbs to BMI in metric
   document.getElementById("bmi").textContent=`BMI: ${bmiVal}`;
   saveData();
 }
@@ -91,15 +90,6 @@ function drawGrowthDashboard(){
   const canvas=document.getElementById("growthDashboard");
   const ctx=canvas.getContext("2d");
   ctx.clearRect(0,0,canvas.width,canvas.height);
-
-  const lvl=levelFromXP(data.xp);
-  const currentLevelXP=lvl*lvl*50;
-  const nextLevelXP=(lvl+1)*(lvl+1)*50;
-  const xpPercent=Math.min(((data.xp-currentLevelXP)/(nextLevelXP-currentLevelXP))*100,100);
-  ctx.fillStyle="#4a90e2";
-  ctx.fillRect(0,10,canvas.width*xpPercent/100,20);
-  ctx.fillStyle="#000";
-  ctx.fillText(`XP: ${data.xp}`,5,25);
 
   // Streak bar
   const streakDates=Object.keys(data.progress).sort();
@@ -117,13 +107,13 @@ function drawGrowthDashboard(){
     const colors={weight:"#4a90e2",arm:"#f39c12",thigh:"#27ae60",calf:"#e74c3c",bmi:"#8e44ad"};
     const maxVal=Math.max(...months.map(m=>{
       const vals=data.metrics[m];
-      return Math.max(vals.weight,vals.arm,vals.thigh,vals.calf,(vals.weight/(vals.height/100)**2).toFixed(1));
+      return Math.max(vals.weight,vals.arm,vals.thigh,vals.calf,(vals.weight/((vals.height*0.0254)**2)).toFixed(1));
     }));
     metrics.forEach(metric=>{
       ctx.strokeStyle=colors[metric];
       ctx.beginPath();
       months.forEach((m,i)=>{
-        let val=metric==="bmi"?data.metrics[m].weight/(data.metrics[m].height/100)**2:data.metrics[m][metric];
+        let val=metric==="bmi"?data.metrics[m].weight/((data.metrics[m].height*0.0254)**2):data.metrics[m][metric];
         const x=i*(canvas.width/months.length)+10;
         const y=canvas.height-(val/maxVal*100)-50;
         if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
@@ -135,27 +125,15 @@ function drawGrowthDashboard(){
 
 /* ---------- UI ---------- */
 function updateUI(){
-  document.getElementById("level").textContent=levelFromXP(data.xp);
-  document.getElementById("xp").textContent=data.xp;
   document.getElementById("streak").textContent=data.streak.count||0;
   document.getElementById("totalTime").textContent=data.totalTime;
 
-  const lvl=levelFromXP(data.xp);
-  const currentLevelXP=lvl*lvl*50;
-  const nextLevelXP=(lvl+1)*(lvl+1)*50;
-  const xpIntoLevel=data.xp-currentLevelXP;
-  const xpForLevel=nextLevelXP-currentLevelXP;
-  const percent=Math.min((xpIntoLevel/xpForLevel)*100,100);
-  document.getElementById("xpGraph").style.width=percent+"%";
-  document.getElementById("xpGraphText").textContent=`${xpIntoLevel} / ${xpForLevel} XP`;
-
-  const goals=scaledGoals(lvl);
   const progList=document.getElementById("progressList");
   progList.innerHTML="";
-  for(let ex in goals){
+  for(let ex of exercises){
     const cur=data.progress[today()]?.[ex]||0;
     const li=document.createElement("li");
-    li.textContent=`${ex}: ${cur} / ${goals[ex]}`;
+    li.textContent=`${ex}: ${cur} / ${dailyGoals[ex]}`;
     progList.appendChild(li);
   }
 
@@ -182,7 +160,7 @@ function dailyReminder(){
   if(now>target) target.setDate(target.getDate()+1);
   const delay=target-now;
   setTimeout(function notifyAndRepeat(){
-    if(Notification.permission==="granted") new Notification("Growth Arc Reminder",{body:"Time to complete your daily quotas!"});
+    if(Notification.permission==="granted") new Notification("Growth Arc Reminder",{body:"Time to complete your daily workout goals!"});
     setTimeout(notifyAndRepeat,24*60*60*1000);
   },delay);
 }

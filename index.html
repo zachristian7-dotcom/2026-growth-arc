@@ -12,15 +12,9 @@
 <section class="card">
   <button onclick="toggleDarkMode()">🌓 Toggle Dark Mode</button>
 
-  <h2>🎮 Status</h2>
-  <p>Level: <strong id="level">1</strong></p>
-  <p>XP: <strong id="xp">0</strong></p>
-  <p>🔥 Streak: <strong id="streak">0</strong> days</p>
-  <p>Total Time Exercised: <strong id="totalTime">0</strong> sec</p>
-
-  <h2>📈 XP Progress</h2>
-  <div id="xpGraphContainer"><div id="xpGraph"></div></div>
-  <p id="xpGraphText">0 / 100 XP</p>
+  <h2>🔥 Daily Streak</h2>
+  <p>Current Streak: <strong id="streak">0</strong> days</p>
+  <p>Total Time Exercised Today: <strong id="totalTime">0</strong> sec</p>
 
   <h2>🏋️ Log Workout</h2>
   <select id="exercise"></select>
@@ -34,11 +28,11 @@
   <ul id="badgeList"></ul>
 
   <h2>📊 Metrics</h2>
-  <input id="height" placeholder="Height (cm)">
-  <input id="weight" placeholder="Weight (kg)">
-  <input id="arm" placeholder="Arm (cm)">
-  <input id="thigh" placeholder="Thigh (cm)">
-  <input id="calf" placeholder="Calf (cm)">
+  <input id="height" placeholder="Height (inches)">
+  <input id="weight" placeholder="Weight (lbs)">
+  <input id="arm" placeholder="Arm (inches)">
+  <input id="thigh" placeholder="Thigh (inches)">
+  <input id="calf" placeholder="Calf (inches)">
   <button onclick="saveMetrics()">Save Metrics</button>
   <p id="bmi"></p>
 </section>
