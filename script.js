@@ -24,14 +24,17 @@ const dailyGoals = {
   "Plank (sec)": 60
 };
 
-const XP_GOAL = 100;
+const DAILY_XP_BASE = 100;
+const DAILY_XP_CAP = 150;
 
 /* ================= STORAGE ================= */
 
 let data = JSON.parse(localStorage.getItem("growthArc")) || {
   progress: {},
   streak: { count: 0, last: null },
-  xp: 0,
+  dailyXP: 0,
+  lifetimeXP: 0,
+  level: 1,
   totalTime: 0,
   todayVictoryShown: false,
   badges: []
@@ -47,27 +50,40 @@ const today = () =>
 
 const exerciseSelect = document.getElementById("exercise");
 exercises.forEach(ex => {
-  const o = document.createElement("option");
-  o.value = ex;
-  o.textContent = ex;
-  exerciseSelect.appendChild(o);
+  const opt = document.createElement("option");
+  opt.value = ex;
+  opt.textContent = ex;
+  exerciseSelect.appendChild(opt);
 });
 
-/* ================= RESET ================= */
+/* ================= LEVELS ================= */
 
-function resetToday() {
-  const t = today();
-  data.progress[t] = {};
-  data.xp = 0;
-  data.totalTime = 0;
-  data.todayVictoryShown = false;
-  saveData();
-  updateUI();
+function xpForNextLevel(level){
+  return 100 * level;
+}
+
+function updateLevel(){
+  let needed = xpForNextLevel(data.level);
+  while(data.lifetimeXP >= needed){
+    data.lifetimeXP -= needed;
+    data.level++;
+    needed = xpForNextLevel(data.level);
+  }
+}
+
+/* ================= MULTIPLIER ================= */
+
+function getMultiplier(current, goal){
+  const r = current / goal;
+  if(r >= 2) return 1.5;
+  if(r >= 1.5) return 1.25;
+  if(r >= 1) return 1.1;
+  return 1;
 }
 
 /* ================= XP ================= */
 
-function recalcXP() {
+function recalcXP(){
   const t = today();
   const prog = data.progress[t] || {};
   let xp = 0;
@@ -75,41 +91,37 @@ function recalcXP() {
   exercises.forEach(ex => {
     const cur = prog[ex] || 0;
     const goal = dailyGoals[ex];
+
     const ratio = Math.min(cur / goal, 1);
-    xp += ratio * (XP_GOAL / exercises.length);
+    const baseXP = ratio * (DAILY_XP_BASE / exercises.length);
+    const mult = getMultiplier(cur, goal);
+
+    xp += baseXP * mult;
   });
 
-  data.xp = Math.round(xp);
-}
+  xp = Math.min(Math.round(xp), DAILY_XP_CAP);
 
-function animateXPBar(percent) {
-  const bar = document.getElementById("xpBar");
-  let current = parseFloat(bar.style.width) || 0;
-
-  function step() {
-    if (current < percent) {
-      current += 1;
-      bar.style.width = current + "%";
-      requestAnimationFrame(step);
-    } else {
-      bar.style.width = percent + "%";
-    }
+  const diff = xp - data.dailyXP;
+  if(diff > 0){
+    data.lifetimeXP += diff;
+    updateLevel();
   }
-  step();
+
+  data.dailyXP = xp;
 }
 
 /* ================= WORKOUT ================= */
 
-function logWorkout() {
+function logWorkout(){
   const val = Number(document.getElementById("value").value);
   const ex = document.getElementById("exercise").value;
-  if (!val || !dailyGoals[ex]) return;
+  if(!val || !dailyGoals[ex]) return;
 
   const t = today();
   data.progress[t] ??= {};
   data.progress[t][ex] = (data.progress[t][ex] || 0) + val;
 
-  if (ex.includes("sec")) data.totalTime += val;
+  if(ex.includes("sec")) data.totalTime += val;
 
   recalcXP();
   updateStreak();
@@ -120,12 +132,12 @@ function logWorkout() {
 
 /* ================= STREAK ================= */
 
-function updateStreak() {
+function updateStreak(){
   const t = today();
   const last = data.streak.last;
 
-  if (last !== t) {
-    if (last && new Date(t) - new Date(last) === 86400000) {
+  if(last !== t){
+    if(last && new Date(t) - new Date(last) === 86400000){
       data.streak.count++;
     } else {
       data.streak.count = 1;
@@ -134,17 +146,39 @@ function updateStreak() {
   }
 }
 
+/* ================= RESET ================= */
+
+function resetToday(){
+  const t = today();
+  data.progress[t] = {};
+  data.dailyXP = 0;
+  data.totalTime = 0;
+  data.todayVictoryShown = false;
+  saveData();
+  updateUI();
+}
+
 /* ================= UI ================= */
 
-function updateUI() {
+function updateUI(){
   document.getElementById("streak").textContent = data.streak.count;
   document.getElementById("totalTime").textContent = data.totalTime;
 
-  const percent = Math.min((data.xp / XP_GOAL) * 100, 100);
-  animateXPBar(percent);
-  document.getElementById("xpText").textContent =
-    `XP: ${data.xp} / ${XP_GOAL}`;
+  // Level UI
+  const need = xpForNextLevel(data.level);
+  document.getElementById("levelNum").textContent = data.level;
+  document.getElementById("levelBar").style.width =
+    Math.min((data.lifetimeXP / need) * 100, 100) + "%";
+  document.getElementById("levelText").textContent =
+    `${data.lifetimeXP} / ${need} XP`;
 
+  // Daily XP UI
+  document.getElementById("xpBar").style.width =
+    Math.min((data.dailyXP / DAILY_XP_BASE) * 100, 100) + "%";
+  document.getElementById("xpText").textContent =
+    `XP: ${data.dailyXP} / ${DAILY_XP_BASE} (cap ${DAILY_XP_CAP})`;
+
+  // Progress list
   const list = document.getElementById("progressList");
   list.innerHTML = "";
 
@@ -153,7 +187,7 @@ function updateUI() {
   exercises.forEach(ex => {
     const cur = data.progress[today()]?.[ex] || 0;
     const goal = dailyGoals[ex];
-    if (cur < goal) allDone = false;
+    if(cur < goal) allDone = false;
 
     const li = document.createElement("li");
     li.innerHTML = `
@@ -170,7 +204,7 @@ function updateUI() {
     list.appendChild(li);
   });
 
-  if (allDone && !data.todayVictoryShown) {
+  if(allDone && !data.todayVictoryShown){
     data.todayVictoryShown = true;
     saveData();
     alert("🎉 Daily goals completed!");
@@ -179,7 +213,7 @@ function updateUI() {
 
 /* ================= DARK MODE ================= */
 
-function toggleDarkMode() {
+function toggleDarkMode(){
   document.body.classList.toggle("dark-mode");
 }
 
