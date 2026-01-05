@@ -26,7 +26,8 @@ const badgeList=[
   {id:"pullups20","name":"Pull-Up Champ (20+)",check:d=>d["Pull-ups"]>=20},
   {id:"squats50","name":"Leg Day Hero (50+)",check:d=>d["Squats"]>=50},
   {id:"calf50","name":"Calf Crusher (50+)",check:d=>d["Calf Raises"]>=50},
-  {id:"grip90","name":"Grip Master (90s)",check:d=>d["Grip Strength (sec)"]>=90},
+  { id:"gripLeft90", name:"Left-Hand Grip Master (90s)", check:d=>d["Grip Strength Left (sec)"]>=90 },
+{ id:"gripRight90", name:"Right-Hand Grip Master (90s)", check:d=>d["Grip Strength Right (sec)"]>=90 },
   {id:"butterfly30","name":"Flutter Kicks (30s)",check:d=>d["Butterfly Kicks"]>=30},
   {id:"plankDaily","name":"Plank Daily",check:d=>d["Plank (sec)"]>=60}
 ];
